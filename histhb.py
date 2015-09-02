@@ -54,6 +54,7 @@ class History(object):
     fields = {}
     entries = []
     source_enc = 'utf-8'
+    fh_start_position = 0
 
     def __init__(self, input_file):
         self.input_file = input_file
@@ -61,20 +62,25 @@ class History(object):
 
     def _read_input_file(self):
         with open(self.input_file, 'r') as fh:
+            self._detect_input_encoding(fh)
             self._prepare_input_file(fh)
             self._parse_input_file(fh)
 
-    def _prepare_input_file(self, fh):
+    def _detect_input_encoding(self, fh):
         # TODO: try encoding from configfile first
         self.source_enc = detect_encoding(fh)
         self.logger.debug("detected encoding: %s" % self.source_enc)
         fh.seek(0)
 
+    def _prepare_input_file(self, fh):
+        self.fh_start_position = 0
+
     def _parse_input_file(self, fh):
-        dialect = csv.Sniffer().sniff(fh.read(), delimiters=';')
-        fh.seek(0)
+        self.logger.debug("start_position: %s" % self.fh_start_position)
+        next_line = next(fh)
+        self.logger.debug(next_line)
+        dialect = csv.Sniffer().sniff(next_line, delimiters=';')
         reader = csv.reader(fh, dialect)
-        next(reader)
         for row in reader:
             r = {}
             for key, value in self.fields.iteritems():
@@ -115,6 +121,12 @@ class KbHistory(History):
         'category': -1,
         'tags': -1
     }
+
+    def _prepare_input_file(self, fh):
+        for _ in xrange(17):
+            next(fh)
+        self.fh_start_position = fh.tell()
+
 
 
 class EraHistory(History):
