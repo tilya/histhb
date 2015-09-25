@@ -152,16 +152,25 @@ class EraHistory(History):
         entry_end = re.compile(r'^[-]+$')
 #        file_end = re.compile(r'Konec výpisu všech položek.')
 
-        pattern = '\s+'.join([
-            r'^\s+(?P<date>[0-9]{2}.\s[0-9]{2}.\s[0-9]{4})',
-            r'(?P<amount>[+-]\d+,\d+)\sCZK',
-            r'(?P<balance>[+-]\d+,\d+)',
-            r'(?P<reference>\d+)',
-            r'(?P<operation>[\w\s]+)',
-            r'(?P<ks>\d+)\s(?P<ss>\d+)',
-            r'(?P<payee>\d+-\d+/\d+)?',
-            r'(?P<info>.*)$'
+#        pattern = '\s+'.join([
+#            r'^\s*(?P<date>[0-9]{2}.\s[0-9]{2}.\s[0-9]{4})',
+#            r'(?P<amount>[+-]\d+,\d+)\sCZK',
+#            r'(?P<balance>[+-]\d+,\d+)',
+#            r'(?P<reference>\d+)?',
+#            r'(?P<operation>[-\w\s]+?)',
+#            r'(?P<ks>\d+)?\s?(?P<ss>\d+)?\s+(?P<payee>\d+-\d+/\d+)?',
+#            r'(?P<info>.*)$'
+#        ])
+        pattern = ''.join([
+            r'^\s*(?P<date>[0-9]{2}.\s[0-9]{2}.\s[0-9]{4})\s*',
+            r'(?P<amount>[+-]\d+,\d+)\sCZK\s*',
+            r'(?P<balance>[+-]\d+,\d+)\s*',
+            r'(?P<reference>\d+)?\s*',
+            r'(?P<operation>[-,\w\s]+?)\s+'
+            r'(?P<ks>\d+)?\s?(?P<ss>\d+)?\s*'
+            r'(?P<payee>\d+-\d+/\d+)?\s+(?P<info>.*)$'
         ])
+
         self.logger.debug(pattern)
         entry_pattern = re.compile(pattern, re.UNICODE)
 
