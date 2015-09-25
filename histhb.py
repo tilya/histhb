@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import argparse
 import logging
@@ -6,6 +7,7 @@ import sys
 from collections import namedtuple
 import csv
 from chardet.universaldetector import UniversalDetector
+import re
 
 HistEntry = namedtuple('HistEntry', [
     'date',
@@ -130,7 +132,79 @@ class KbHistory(History):
 
 
 class EraHistory(History):
-    pass
+    fields = {
+        'date': -1,
+        'paymode': -1,
+        'info': -1,
+        'payee': -1,
+        'memo': -1,
+        'amount': -1,
+        'category': -1,
+        'tags': -1
+    }
+
+    def _prepare_input_file(self, fh):
+        for _ in xrange(6):
+            next(fh)
+        self.fh_start_position = fh.tell()
+
+    def _parse_input_file(self, fh):
+        entry_end = re.compile(r'^[-]+$')
+#        file_end = re.compile(r'Konec výpisu všech položek.')
+
+        pattern = '\s+'.join([
+            r'^\s+(?P<date>[0-9]{2}.\s[0-9]{2}.\s[0-9]{4})',
+            r'(?P<amount>[+-]\d+,\d+)\sCZK',
+            r'(?P<balance>[+-]\d+,\d+)',
+            r'(?P<reference>\d+)',
+            r'(?P<operation>[\w\s]+)',
+            r'(?P<ks>\d+)\s(?P<ss>\d+)',
+            r'(?P<payee>\d+-\d+/\d+)?',
+            r'(?P<info>.*)$'
+        ])
+        self.logger.debug(pattern)
+        entry_pattern = re.compile(pattern, re.UNICODE)
+
+        self.logger.debug("start_position: %s" % self.fh_start_position)
+
+        entry_line = ''
+        for line in fh:
+            # decoded_line = unicode(line.rstrip('\n'), self.source_enc)
+            stripped_line = line.rstrip('\n')
+#            self.logger.debug(decoded_line)
+            entry_end_match = re.match(entry_end, stripped_line)
+            if entry_end_match:
+                # self.logger.debug('end of entry found')
+                # parse the entry
+                self.logger.debug(entry_line)
+
+                decoded_line = unicode(entry_line, self.source_enc)
+                entry_match = re.match(entry_pattern, decoded_line)
+                if entry_match:
+                    self.logger.debug(entry_match.groups())
+                    r = {}
+                    for key in self.fields.keys():
+                        try:
+                            value = entry_match.group(key)
+                            if value is None:
+                                r[key] = ''
+                            else:
+                                r[key] = value
+
+                        except IndexError:
+                            r[key] = ''
+
+                    entry = HistEntry(**r)
+                    self.logger.debug(entry)
+                    self.entries.append(entry)
+                else:
+                    self.logger.info('entry does not match the pattern')
+
+                entry_line = ''
+
+            else:
+                # add line to current entry
+                entry_line = "%s %s" % (entry_line, stripped_line)
 
 
 if __name__ == '__main__':
@@ -153,6 +227,8 @@ if __name__ == '__main__':
         history = CsasHistory(args.input_file)
     elif args.bank == 'kb':
         history = KbHistory(args.input_file)
+    elif args.bank == 'era':
+        history = EraHistory(args.input_file)
 
     history._read_input_file()
 
