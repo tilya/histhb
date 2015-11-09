@@ -162,11 +162,11 @@ class EraHistory(History):
 #            r'(?P<info>.*)$'
 #        ])
         pattern = ''.join([
-            r'^\s*(?P<date>[0-9]{2}.\s[0-9]{2}.\s[0-9]{4})\s*',
+            r'^\s*(?P<date>[0-9]{2}.[0-9]{2}.[0-9]{4})\s*',
             r'(?P<amount>[+-]\d+,\d+)\sCZK\s*',
             r'(?P<balance>[+-]\d+,\d+)\s*',
             r'(?P<reference>\d+)?\s*',
-            r'(?P<operation>[-,\w\s]+?)\s+'
+            r'(?P<operation>[-,;\w\s]+?)\s+'
             r'(?P<ks>\d+)?\s?(?P<ss>\d+)?\s*'
             r'(?P<payee>\d+-\d+/\d+)?\s+(?P<info>.*)$'
         ])
@@ -198,7 +198,7 @@ class EraHistory(History):
                             if value is None:
                                 r[key] = ''
                             else:
-                                r[key] = value
+                                r[key] = value.replace(';', '')
 
                         except IndexError:
                             r[key] = ''
