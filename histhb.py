@@ -144,12 +144,13 @@ class EraHistory(History):
     }
 
     def _prepare_input_file(self, fh):
-        for _ in xrange(6):
+        for _ in xrange(4):
             next(fh)
         self.fh_start_position = fh.tell()
 
     def _parse_input_file(self, fh):
-        entry_end = re.compile(r'^[-]+$')
+        #entry_end = re.compile(r'^[-]+$')
+        entry_end = re.compile(r'^-')
 #        file_end = re.compile(r'Konec výpisu všech položek.')
 
 #        pattern = '\s+'.join([
@@ -161,14 +162,23 @@ class EraHistory(History):
 #            r'(?P<ks>\d+)?\s?(?P<ss>\d+)?\s+(?P<payee>\d+-\d+/\d+)?',
 #            r'(?P<info>.*)$'
 #        ])
+#        pattern = ''.join([
+#            r'^\s*(?P<date>[0-9]{2}.[0-9]{2}.[0-9]{4})\s*',
+#            r'(?P<amount>[+-]\d+,\d+)\sCZK\s*',
+#            r'(?P<balance>[+-]\d+,\d{2})\s*',
+#            r'(?P<reference>\d+)?\s*',
+#            r'(?P<operation>[-,;\w\s]+)?\s*'
+#            r'(?P<ks>\d+)?\s?(?P<ss>\d+)?\s*'
+#            r'(?P<payee>\d+-\d+/\d+)?\s+(?P<info>.*)$'
+#        ])
+
         pattern = ''.join([
-            r'^\s*(?P<date>[0-9]{2}.[0-9]{2}.[0-9]{4})\s*',
-            r'(?P<amount>[+-]\d+,\d+)\sCZK\s*',
-            r'(?P<balance>[+-]\d+,\d+)\s*',
-            r'(?P<reference>\d+)?\s*',
-            r'(?P<operation>[-,;\w\s]+?)\s+'
-            r'(?P<ks>\d+)?\s?(?P<ss>\d+)?\s*'
-            r'(?P<payee>\d+-\d+/\d+)?\s+(?P<info>.*)$'
+           r'^\s*(?P<date>[0-9]{2}.[0-9]{2}.)\s+',
+           r'(?P<info>[-.,\w\ ]+)\s+',
+           r'(?P<reference>\d+)\s+',
+           r'(?P<amount>[ +-]\d+,\d+)\s+',
+           r'(?P<payee>\d+-\d+/\d+)?\s*',
+           r'(?P<memo>.*)$',
         ])
 
         self.logger.debug(pattern)
@@ -179,15 +189,16 @@ class EraHistory(History):
         entry_line = ''
         for line in fh:
             # decoded_line = unicode(line.rstrip('\n'), self.source_enc)
-            stripped_line = line.rstrip('\n')
-#            self.logger.debug(decoded_line)
+            stripped_line = line.strip(' \t\n\r')
+#            self.logger.debug(stripped_line)
             entry_end_match = re.match(entry_end, stripped_line)
             if entry_end_match:
-                # self.logger.debug('end of entry found')
+                self.logger.debug('end of entry found')
                 # parse the entry
-                self.logger.debug(entry_line)
 
                 decoded_line = unicode(entry_line, self.source_enc)
+                # self.logger.debug(decoded_line)
+
                 entry_match = re.match(entry_pattern, decoded_line)
                 if entry_match:
                     self.logger.debug(entry_match.groups())
@@ -214,6 +225,7 @@ class EraHistory(History):
             else:
                 # add line to current entry
                 entry_line = "%s %s" % (entry_line, stripped_line)
+                self.logger.debug(entry_line)
 
 
 if __name__ == '__main__':
