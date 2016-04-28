@@ -8,6 +8,7 @@ from collections import namedtuple
 import csv
 from chardet.universaldetector import UniversalDetector
 import re
+from datetime import datetime
 
 HistEntry = namedtuple('HistEntry', [
     'date',
@@ -209,6 +210,8 @@ class EraHistory(History):
                             if value is None:
                                 r[key] = ''
                             else:
+                                if key == 'date':
+                                    value = "%s%s" % (value, datetime.now().year)
                                 r[key] = value.replace(';', '')
 
                         except IndexError:
