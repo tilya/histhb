@@ -119,7 +119,7 @@ class KbHistory(History):
         'paymode': -1,
         'info': 13,
         'payee': 2,
-        'memo': 14,
+        'memo': 15,
         'amount': 4,
         'category': -1,
         'tags': -1
@@ -145,7 +145,7 @@ class EraHistory(History):
     }
 
     def _prepare_input_file(self, fh):
-        for _ in xrange(4):
+        for _ in xrange(15):
             next(fh)
         self.fh_start_position = fh.tell()
 
