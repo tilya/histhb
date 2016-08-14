@@ -131,7 +131,6 @@ class KbHistory(History):
         self.fh_start_position = fh.tell()
 
 
-
 class EraHistory(History):
     fields = {
         'date': -1,
@@ -150,9 +149,9 @@ class EraHistory(History):
         self.fh_start_position = fh.tell()
 
     def _parse_input_file(self, fh):
-        #entry_end = re.compile(r'^[-]+$')
+        # entry_end = re.compile(r'^[-]+$')
         entry_end = re.compile(r'^-')
-#        file_end = re.compile(r'Konec výpisu všech položek.')
+        # file_end = re.compile(r'Konec výpisu všech položek.')
 
 #        pattern = '\s+'.join([
 #            r'^\s*(?P<date>[0-9]{2}.\s[0-9]{2}.\s[0-9]{4})',
@@ -174,12 +173,12 @@ class EraHistory(History):
 #        ])
 
         pattern = ''.join([
-           r'^\s*(?P<date>[0-9]{2}.[0-9]{2}.)\s+',
-           r'(?P<info>[-.,\w\ ]+)\s+',
-           r'(?P<reference>\d+)\s+',
-           r'(?P<amount>[ +-]\d+,\d+)\s+',
-           r'(?P<payee>\d+-\d+/\d+)?\s*',
-           r'(?P<memo>.*)$',
+            r'^\s*(?P<date>[0-9]{2}.[0-9]{2}.)\s+',
+            r'(?P<info>[-.,\w\ ]+)\s+',
+            r'(?P<reference>\d+)\s+',
+            r'(?P<amount>[ +-]\d+,\d+)\s+',
+            r'(?P<payee>\d+-\d+/\d+)?\s*',
+            r'(?P<memo>.*)$',
         ])
 
         self.logger.debug(pattern)
