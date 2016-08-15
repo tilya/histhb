@@ -149,28 +149,7 @@ class EraHistory(History):
         self.fh_start_position = fh.tell()
 
     def _parse_input_file(self, fh):
-        # entry_end = re.compile(r'^[-]+$')
         entry_end = re.compile(r'^-')
-        # file_end = re.compile(r'Konec výpisu všech položek.')
-
-#        pattern = '\s+'.join([
-#            r'^\s*(?P<date>[0-9]{2}.\s[0-9]{2}.\s[0-9]{4})',
-#            r'(?P<amount>[+-]\d+,\d+)\sCZK',
-#            r'(?P<balance>[+-]\d+,\d+)',
-#            r'(?P<reference>\d+)?',
-#            r'(?P<operation>[-\w\s]+?)',
-#            r'(?P<ks>\d+)?\s?(?P<ss>\d+)?\s+(?P<payee>\d+-\d+/\d+)?',
-#            r'(?P<info>.*)$'
-#        ])
-#        pattern = ''.join([
-#            r'^\s*(?P<date>[0-9]{2}.[0-9]{2}.[0-9]{4})\s*',
-#            r'(?P<amount>[+-]\d+,\d+)\sCZK\s*',
-#            r'(?P<balance>[+-]\d+,\d{2})\s*',
-#            r'(?P<reference>\d+)?\s*',
-#            r'(?P<operation>[-,;\w\s]+)?\s*'
-#            r'(?P<ks>\d+)?\s?(?P<ss>\d+)?\s*'
-#            r'(?P<payee>\d+-\d+/\d+)?\s+(?P<info>.*)$'
-#        ])
 
         pattern = ''.join([
             r'^\s*(?P<date>[0-9]{2}.[0-9]{2}.)\s+',
@@ -188,16 +167,12 @@ class EraHistory(History):
 
         entry_line = ''
         for line in fh:
-            # decoded_line = unicode(line.rstrip('\n'), self.source_enc)
             stripped_line = line.strip(' \t\n\r')
-#            self.logger.debug(stripped_line)
             entry_end_match = re.match(entry_end, stripped_line)
             if entry_end_match:
                 self.logger.debug('end of entry found')
-                # parse the entry
 
                 decoded_line = unicode(entry_line, self.source_enc)
-                # self.logger.debug(decoded_line)
 
                 entry_match = re.match(entry_pattern, decoded_line)
                 if entry_match:
