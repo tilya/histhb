@@ -74,8 +74,13 @@ class History(object):
     #     self.logger.debug("detected encoding: %s" % self.source_enc)
     #     fh.seek(0)
 
+    def _skip_n_lines(self, fh, n):
+        for _ in range(n):
+            fh.readline()
+        self.fh_start_position = fh.tell()
+
     def _prepare_input_file(self, fh):
-        self.fh_start_position = 0
+        pass
 
     def _parse_input_file(self, fh):
         self.logger.debug("start_position: %s" % self.fh_start_position)
@@ -84,9 +89,7 @@ class History(object):
         dialect = csv.Sniffer().sniff(next_line, delimiters=';')
         reader = csv.reader(fh, dialect)
         for row in reader:
-            r = {}
-            for key, value in self.fields.items():
-                r[key] = row[value]
+            r = {key: row[value] for key, value in self.fields.items()}
             self.logger.debug(r)
             entry = HistEntry(**r)
             self.logger.debug(entry)
@@ -125,10 +128,7 @@ class KbHistory(History):
     }
 
     def _prepare_input_file(self, fh):
-        for _ in range(17):
-            next(fh)
-        self.fh_start_position = fh.tell()
-
+        self._skip_n_lines(fh, 17)
 
 class EraHistory(History):
     fields = {
@@ -143,8 +143,7 @@ class EraHistory(History):
     }
 
     def _prepare_input_file(self, fh):
-        (fh.readline() for _ in range(15))
-        self.fh_start_position = fh.tell()
+        self._skip_n_lines(fh, 15)
 
     def _parse_input_file(self, fh):
         entry_end = re.compile(r'^-')
@@ -160,8 +159,6 @@ class EraHistory(History):
 
         self.logger.debug(pattern)
         entry_pattern = re.compile(pattern, re.UNICODE)
-
-        self.logger.debug("start_position: %s" % self.fh_start_position)
 
         entry_line = ''
         for line in fh:
