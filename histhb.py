@@ -1,12 +1,11 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import argparse
 import logging
 import sys
 from collections import namedtuple
 import csv
-from chardet.universaldetector import UniversalDetector
+# from chardet.universaldetector import UniversalDetector
 import re
 from datetime import datetime
 
@@ -38,17 +37,17 @@ def setup_logging(logger_name, log_level):
     logger.setLevel(log_level)
 
 
-def detect_encoding(file_handle):
-    detector = UniversalDetector()
-    detector.reset()
-
-    for line in file_handle:
-        detector.feed(line)
-        if detector.done:
-            break
-    detector.close()
-
-    return detector.result['encoding']
+# def detect_encoding(file_handle):
+#     detector = UniversalDetector()
+#     detector.reset()
+#
+#     for line in file_handle:
+#         detector.feed(line)
+#         if detector.done:
+#             break
+#     detector.close()
+#
+#     return detector.result['encoding']
 
 
 class History(object):
@@ -65,15 +64,15 @@ class History(object):
 
     def _read_input_file(self):
         with open(self.input_file, 'r') as fh:
-            self._detect_input_encoding(fh)
+            # self._detect_input_encoding(fh)
             self._prepare_input_file(fh)
             self._parse_input_file(fh)
 
-    def _detect_input_encoding(self, fh):
-        # TODO: try encoding from configfile first
-        self.source_enc = detect_encoding(fh)
-        self.logger.debug("detected encoding: %s" % self.source_enc)
-        fh.seek(0)
+    # def _detect_input_encoding(self, fh):
+    #     # TODO: try encoding from configfile first
+    #     self.source_enc = detect_encoding(fh)
+    #     self.logger.debug("detected encoding: %s" % self.source_enc)
+    #     fh.seek(0)
 
     def _prepare_input_file(self, fh):
         self.fh_start_position = 0
@@ -86,8 +85,8 @@ class History(object):
         reader = csv.reader(fh, dialect)
         for row in reader:
             r = {}
-            for key, value in self.fields.iteritems():
-                r[key] = unicode(row[value], self.source_enc)
+            for key, value in self.fields.items():
+                r[key] = row[value]
             self.logger.debug(r)
             entry = HistEntry(**r)
             self.logger.debug(entry)
@@ -126,7 +125,7 @@ class KbHistory(History):
     }
 
     def _prepare_input_file(self, fh):
-        for _ in xrange(17):
+        for _ in range(17):
             next(fh)
         self.fh_start_position = fh.tell()
 
@@ -144,8 +143,7 @@ class EraHistory(History):
     }
 
     def _prepare_input_file(self, fh):
-        for _ in xrange(15):
-            next(fh)
+        (fh.readline() for _ in range(15))
         self.fh_start_position = fh.tell()
 
     def _parse_input_file(self, fh):
@@ -172,13 +170,13 @@ class EraHistory(History):
             if entry_end_match:
                 self.logger.debug('end of entry found')
 
-                decoded_line = unicode(entry_line, self.source_enc)
+                decoded_line = entry_line
 
                 entry_match = re.match(entry_pattern, decoded_line)
                 if entry_match:
                     self.logger.debug(entry_match.groups())
                     r = {}
-                    for key in self.fields.keys():
+                    for key in list(self.fields.keys()):
                         try:
                             value = entry_match.group(key)
                             if value is None:
@@ -232,5 +230,5 @@ if __name__ == '__main__':
 
     with open(args.output_file, 'w+') as fh:
         for entry in history._format_entries():
-            fh.write(entry.encode('utf-8'))
+            fh.write(entry)
             fh.write('\n')
