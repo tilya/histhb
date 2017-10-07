@@ -130,6 +130,7 @@ class KbHistory(History):
     def _prepare_input_file(self, fh):
         self._skip_n_lines(fh, 17)
 
+
 class EraHistory(History):
     fields = {
         'date': -1,
